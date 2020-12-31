@@ -1,0 +1,242 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <title>전체 태스크 목록</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--<link href="..\bootstrap-3.3.2\dist\css\bootstrap.min.css" rel="stylesheet">-->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800&display=swap" rel="stylesheet">
+    <nav class="navbar navbar-expand-sm navbar navbar-dark bg-dark" style="width: auto; background-color:white;">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/main"><b>DB_project_2020</b></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/main"><b>메인화면</b></a>
+            </li>
+            {%if user.role==0 %}
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">내 정보</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/userinfo/stat">회원관리</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/task_sys">태스크관리</a>
+            </li>
+            {%endif%}
+            {%if user.role==1%}
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">내 정보</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">태스크참여</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/task_sys/partic">파일제출</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/task_sys/partic/partic/{{user.id}}">제출현황</a>
+            </li>
+            {%endif%}
+            {%if user.role==2%}
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">내 정보</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">태스크평가</a>
+            </li>
+            {%endif%}
+        </ul>
+    </nav>
+
+</head>
+<body>
+    <div class="abcd" style="overflow: hidden;
+    margin: auto;
+    position: relative; /*relative*/
+    margin-top:20px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 1200px;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 19px 38px rgba(0, 0, 0, 0.20), 0 15px 12px rgba(0, 0, 0, 0.12);">
+        <h2>전체 태스크 목록</h2>
+        {%if user.role==0%}
+        <table class="table table-hover" style="width:100%" align="center">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>태스크이름</th>
+                    <th>설명</th>
+                    <th>최소업로드주기</th>
+                    <th>테이블이름</th>
+                    <th>테이블스키마</th>
+                    <th>원본데이터타입</th>
+                    <th>현황</th>
+                    <th>관리기능</th>
+                    <ul></ul>
+            </thead>
+            </tr>
+
+            {%for task in tasks%}
+            <tr>
+                <td>{{task.task_id}}</td>
+                <td><a type="button" href="/task_sys/info/{{task.task_id}}" method='GET'>{{task.task_name}}</a></td>
+                <td>{{task.description}}</td>
+                
+                <td>{{task.min_upload_freq}}</td>
+                <td>{{task.task_table_name}}</td>
+                <td>{{task.table_schema}}</td>
+                <td>
+                    <a type="button" class="btn btn-primary" style='padding: .075rem .175rem;' href="/task_sys/add_odt/{{task.task_id}}" method='GET'>추가</a>
+                </td>                
+                <td>
+                    {{'진행중' if task.is_closed==false}}
+                    {{'종료' if task.is_closed==true}}
+                </td>
+                <td>
+                    <form action="/task_sys/delete/{{task.task_id}}{{task.task_table_name}}?_method=DELETE" method="POST">
+                        <button id="drop" type='submit' style="border: 0;" class="badge badge-danger">삭제</button>
+                    </form>
+                    {%if task.is_closed==false%}
+
+                    <a class="badge badge-secondary" href="/task_sys/manage/close/{{task.task_id}}" method='GET' >종료</a>
+                    {%endif%}
+                </td>
+            </tr>
+            {%endfor%}
+        </table>
+        {%endif%}
+        {%if user.role==1%}
+        <span class="badge badge-primary">-</span>신청제출
+        <span class="badge badge-success">V</span>승인받음
+        <span class="badge badge-secondary">X</span>승인거절
+
+        <table class="table table-hover" style="width: 100%" align="center">
+            <thead>
+                <tr>
+                    <th>ID#</th>
+                    <th>태스크이름</th>
+                    <th style="width: 400px;">설명</th>
+                    <th>최소업로드주기</th>
+                    <th>승인현황</th>
+                    <th>진행중/종료</th>
+                
+            </thead>
+            </tr>
+
+            {%for task in tasks%}
+            <tr>
+                <td>{{task.task_id}}</td>
+                <td><a type="button" href="/task_sys/info/{{task.task_id}}" method='GET'>{{task.task_name}}</a></td>
+                <td>{{task.description}}</td>
+                <td>{{task.min_upload_freq}}</td>
+                <td>{%for apply in task.Applies%}
+                        {%if apply.user_id==user.id and apply.is_approved==NULL%}
+                        <span class="badge badge-primary">-</span>
+                        {%endif%}
+                        {%if apply.user_id==user.id and apply.is_approved==true%}
+                        <span class="badge badge-success">V</span>
+                        {%endif%}
+                        {%if apply.user_id==user.id and apply.is_approved==false%}
+                        <span class="badge badge-secondary">X</span>
+                        {%endif%}
+                    {%endfor%}</td>
+                <td>{%if task.is_closed==false%}
+                    <a type="button" class="btn btn-primary btn-sm" href="/task_sys/pre/{{task.task_id}}" method='GET'>참여하기</a>
+                    {%endif%}
+                    {{'종료' if task.is_closed==true}}</td>
+                    
+                
+            </tr>
+            {%endfor%}
+        </table>
+        
+        
+        <h2>허가받은 태스크</h2>
+        <table class="table table-hover" style="width: 100%" align="center">
+            <thead>
+                <tr>
+                    <th>ID#</th>
+                    <th>태스크이름</th>
+                    <th style="width: 400px;">설명</th>
+                    <th>최소업로드주기</th>
+                    <th>승인현황</th>
+                    <th>진행중/종료</th>
+                
+            </thead>
+            </tr>
+
+            {%for task in tasks%}
+                {%for apply in task.Applies%}
+                    {%if apply.user_id==user.id and apply.is_approved==true%}
+            <tr>
+                <td>{{task.task_id}}</td>
+                <td><a type="button" href="/task_sys/info/{{task.task_id}}" method='GET'>{{task.task_name}}</a></td>
+                <td>{{task.description}}</td>
+                <td>{{task.min_upload_freq}}</td>
+                <td>
+                       
+                        승인받음
+                    </td>
+                <td>{%if task.is_closed==false%}
+                    <a type="button" class="btn btn-primary btn-sm" href="/task_sys/partic" method='GET'>제출하기</a>
+                    
+                    {{'종료' if task.is_closed==true}}</td>
+                    {%endif%} 
+                    {%endif%}   
+                {%endfor%}
+            </tr>
+            {%endfor%}
+        </table>
+
+        {%endif%}
+        {%if user.role==2%}
+        <p>배정된 채점 파일들 (개발중)</p>
+        <table stylule="width:100%" border="1" align="center">
+            <thead>
+                <tr>
+                    <th>태스크 고유ID</th>
+
+                    <th>태스크이름</th>
+                    <th>설명</th>
+                    <th>최소업로드주기</th>
+                    <th>진행중/종료</th>
+                    <ul></ul>
+            </thead>
+            </tr>
+
+            {%for task in tasks%}
+            <tr>
+                <td>{{task.task_id}}</td>
+                <td>{{task.task_name}}</td>
+                <td>{{task.description}}</td>
+                <td>{{task.min_upload_freq}}</td>
+                <td>
+                    {%if task.is_closed==false %}
+                    <button><a type="button" href="/task_sys/{{user.id}}/apply_{{task.task_id}}" method='GET'>참여하기</a></button>
+                    {%endif%}
+                    {{'종료' if task.is_closed==true}}
+                </td>
+            </tr>
+            {%endfor%}
+        </table>
+
+
+        {%endif%}
+        {%if user.role==0 %}
+        <a type="button" href="/task_sys"  class="btn btn-primary" style="margin-top:10px;margin-bottom:10px;">시스템메인페이지</a>
+        {%endif%}
+        <a type="button" href="/"  class="btn btn-primary" style="margin-top:10px; margin-bottom:10px;" >종료</a>
+        </div>
+</body>
+
+</html>
+<!--
+<script type="text/javascript">alert("접근권한없음! (관리자기능)");location.href="/auth/logout";</script>
+-->

@@ -1,0 +1,187 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>전체 태스크 목록</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--<link href="..\bootstrap-3.3.2\dist\css\bootstrap.min.css" rel="stylesheet">-->
+
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700,800&display=swap">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <nav class="navbar navbar-expand-sm navbar navbar-dark bg-dark" style="width: auto; background-color:white;">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/main"><b>DB_project_2020</b></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/main"><b>메인화면</b></a>
+            </li>
+            {%if user.role==0 %}
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">내 정보</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/userinfo/stat">회원관리</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/task_sys">태스크관리</a>
+            </li>
+            {%endif%}
+            {%if user.role==1%}
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">내 정보</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">태스크참여</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/task_sys/partic">파일제출</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/task_sys/partic/partic/{{user.id}}">제출현황</a>
+            </li>
+            {%endif%}
+            {%if user.role==2%}
+            <li class="nav-item">
+                <a class="nav-link" href="/profile">내 정보</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">태스크평가</a>
+            </li>
+            {%endif%}
+        </ul>
+    </nav>
+</head>
+<body>
+    <div class="abcd" style="overflow: hidden;
+    margin: auto;
+    position: relative; /*relative*/
+    margin-top:20px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 1200px;
+    text-align: center;
+    background-color: white;
+    box-shadow: 0 19px 38px rgba(0, 0, 0, 0.20), 0 15px 12px rgba(0, 0, 0, 0.12);">
+        <div class="card bg-light mb-3">
+        <h3 class="card-header"><b>태스크 정보</b></h3>
+        
+        
+            {%for task in tasks%}
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">태스크ID</b> {{task.task_id}}</div> <hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">태스크이름</b> {{task.task_name}}</div><hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">설명</b> {{task.description}}</div><hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">태스크테이블이름</b> {{task.task_table_name}}</div><hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">최소업로드주기 </b>{{task.min_upload_freq}}(일)</div><hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">진행상태</b> {{'진행중' if task.is_closed==false}}
+                    {{'종료' if task.is_closed==true}} 
+                
+                    {%if user.role==1%}
+                    <a type="button" class="badge badge-primary" href="/task_sys/{{user.id}}/apply_{{task.task_id}}" method='GET'>참여하기</a>
+                    {%endif%}
+
+                </div><hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">테이블스키마</b> {{task.table_schema}}</div><hr style="margin:auto">
+            {%endfor%}
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">태스크 원본 데이터타입</b>     
+                {%for odt in odts%}
+                    <a class="badge badge-dark" data-toggle="collapse" href="#{{odt.name}}" role="button" aria-expanded="false" aria-controls="collapseExample">{{odt.name}}</a>
+                    <div class="collapse" id="{{odt.name}}">
+                        <div class="card card-body">
+                            <div><b>스키마정보:</b>{{odt.schema_info}}</div>
+                            <div><b>스키마매핑정보:</b>{{odt.mapping_info}}</div>
+                        </div>
+                    </div>
+                {%endfor%}
+
+
+                {%if user.role==0%}
+                <a type="button" class="btn btn-primary" href="/task_sys/add_odt/{{task_id}}" method='GET' style="padding: .1rem .2rem; font-size: 0.8em;">추가하기></a>
+                
+            </div><hr style="margin:auto">
+            <div style="text-align: left; margin-left: 50px;"><b style="margin-right: 10px;">참여자</b>{%for apply in applys%}
+                    <a type='submit' name='id' class="badge badge-dark" href='/userinfo/stat/{{apply.user_id}}' method='GET'>{{apply.user_id}}</a></div>
+                {%endfor%}
+            {%endif%}
+            
+        </div>
+
+
+
+
+
+        {%if user.role==0 %}
+
+
+        <h3 class="card-header"><b>제출된 파싱 데이터</b></h3>
+        <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">제출자</th>
+                <th scope="col">평가자</th>
+                <th scope="col">태스크이름</th>
+                <th scope="col">데이터타입</th>
+                <th scope="col">전체튜플수</th>
+                <th scope="col">NULL비율</th>
+                <th scope="col">평가점수</th>
+                <th scope="col">P/NP</th>
+
+              </tr>
+            </thead>
+            <tbody>
+                {%for pdf in pdfs.rows%}
+              <tr>
+                <th scope="row">{{pdf.pars_id}}</th>
+                <td>{{pdf.submitter_id}}</td>
+                <td>{{pdf.rater_id}}</td>
+                <td>{{pdf.Task.task_name}}</td>
+                <td>{{pdf.odt}}</td>
+                <td>{{pdf.num_total_tuples}}</td>
+                <td>{{(pdf.null_ratio*100).toFixed(2)}}%</td>
+                <td>{{pdf.quality_score}}</td>
+                <td>{{'평가대기중' if pdf.is_passed==null}}
+                    {{'P' if pdf.is_passed=='P'}}
+                    {{'NP' if pdf.is_passed=='NP'}}
+                </td>
+
+              </tr>
+                {%endfor%}
+            </tbody>
+          </table>
+
+
+          <h3 class="card-header"><b>통계</b></h3>
+        <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">제출된 파일 수</th>
+                <th scope="col">총 튜플수</th>
+                <th scope="col">통과튜플수</th>
+                <th scope="col">평균점수</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">{{pdfs.count}}</th>
+                <td>{{total_tuples}}</td>
+                <td>{{passed_tuples}}</td>
+                <td>{{average_score}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+
+        <div><a type="button" href="/task_sys" class="btn btn-primary" style="margin-top:30px; margin-bottom: 30px; ">시스템메인페이지</a></div>
+        {%endif%}
+        <div><a type="button" href="/" class="btn btn-primary" style="margin-top:30px; margin-bottom: 30px;">종료</a></div>
+    </div>
+
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+</body>
+</html>
+<!--
+<script type="text/javascript">alert("접근권한없음! (관리자기능)");location.href="/auth/logout";</script>
+-->
